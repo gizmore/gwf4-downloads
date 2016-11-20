@@ -199,5 +199,18 @@ final class Module_Download extends GWF_Module
 		
 		return true;
 	}
+	
+	public function sidebarContent($bar)
+	{
+		if ($bar === 'top') {
+			return $this->downloadLink();
+		}
+	}
+	
+	private function downloadLink()
+	{
+		return GWF_Button::generic('Download', GWF_WEB_ROOT.'downloads');
+	}
+	
+	
 }
-?>

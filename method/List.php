@@ -4,9 +4,9 @@ final class Download_List extends GWF_Method
 	public function getHTAccess()
 	{
 		return
-			'RewriteRule ^downloads$ index.php?mo=Download&me=List'.PHP_EOL.
-			'RewriteRule ^downloads/by/page-(\d+)$ index.php?mo=Download&me=List&page=$1'.PHP_EOL.
-			'RewriteRule ^downloads/by/([^/]+)/([DEASC,]+)/page-(\d+)$ index.php?mo=Download&me=List&by=$1&dir=$2&page=$3'.PHP_EOL.
+			'RewriteRule ^downloads$ index.php?mo=Download&me=List [QSA]'.PHP_EOL.
+			'RewriteRule ^downloads/by/page-(\d+)$ index.php?mo=Download&me=List&page=$1 [QSA]'.PHP_EOL.
+			'RewriteRule ^downloads/by/([^/]+)/([DEASC,]+)/page-(\d+)$ index.php?mo=Download&me=List&by=$1&dir=$2&page=$3 [QSA]'.PHP_EOL.
 			'';
 	}
 

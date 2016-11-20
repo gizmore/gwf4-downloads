@@ -9,8 +9,8 @@ final class Download_Download extends GWF_Method
 	public function getHTAccess()
 	{
 		return
-			'RewriteRule ^download/(\d+)/[^/]+$ index.php?mo=Download&me=Download&id=$1'.PHP_EOL.
-			'RewriteRule ^download/(\d+)/[^/]+/([a-zA-Z0-9]+)$ index.php?mo=Download&me=Download&id=$1&token=$2'.PHP_EOL;
+			'RewriteRule ^download/(\d+)/[^/]+$ index.php?mo=Download&me=Download&id=$1 [QSA]'.PHP_EOL.
+			'RewriteRule ^download/(\d+)/[^/]+/([a-zA-Z0-9]+)$ index.php?mo=Download&me=Download&id=$1&token=$2 [QSA]'.PHP_EOL;
 	}
 
 	public function execute()
