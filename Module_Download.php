@@ -202,14 +202,14 @@ final class Module_Download extends GWF_Module
 	
 	public function sidebarContent($bar)
 	{
-		if ($bar === 'top') {
+		if ($bar === 'right') {
 			return $this->downloadLink();
 		}
 	}
 	
 	private function downloadLink()
 	{
-		return GWF_Button::generic('Download', GWF_WEB_ROOT.'downloads');
+		return '<div>'.GWF_Button::generic('Download', GWF_WEB_ROOT.'downloads').'</div>'.PHP_EOL;
 	}
 	
 	
