@@ -1,22 +1,18 @@
 <?php
 final class Download_Add extends GWF_Method
 {
-	const SESS_FILE = 'GWF_DL_TFILE';
-	
 	public function execute()
 	{
-		if (false === $this->module->mayUpload(GWF_Session::getUser())) {
+		if (false === $this->module->mayUpload(GWF_Session::getUser()))
+		{
 			return GWF_HTML::err('ERR_NO_PERMISSION');
 		}
 		
-		if (false !== (Common::getPost('add'))) {
+		$this->getForm()->onFlowUpload();
+		
+		if (false !== (Common::getPost('add')))
+		{
 			return $this->onAdd();
-		}
-		if (false !== (Common::getPost('upload'))) {
-			return $this->onUpload().$this->templateAdd();
-		}
-		if (false !== (Common::getPost('remove'))) {
-			return $this->onRemove().$this->templateAdd();
 		}
 		
 		return $this->templateAdd();
@@ -37,28 +33,14 @@ final class Download_Add extends GWF_Method
 	{
 		$data = array();
 		
-		if (false === ($file = $this->getFile())) {
-			$name = '';
-			$size = '';
-		} else {
-			$_POST['filename'] = $name = $file['name'];
-			$size = $file['size'];
-		}
-		
-		$data['filename'] = array(GWF_Form::STRING, $name, $this->module->lang('th_dl_filename'));
-		
-		if ($file === false) {
-			$data['file'] = array(GWF_Form::FILE_OPT, '', $this->module->lang('th_file'));
-			if (GWF_User::isLoggedIn()) {
-				$data['upload'] = array(GWF_Form::SUBMIT, $this->module->lang('btn_upload'));
-			}
-		} else {
-			$data['size'] = array(GWF_Form::SSTRING, $size, $this->module->lang('th_dl_size'));
-			$data['remove'] = array(GWF_Form::SUBMIT, $this->module->lang('btn_remove'));
-		}
+		$data['filename'] = array(GWF_Form::STRING, '', $this->module->lang('th_dl_filename'));
+		$data['file'] = array(GWF_Form::FILE, '', $this->module->lang('th_file'));
+
 		$data['group'] = array(GWF_Form::SELECT, GWF_GroupSelect::single('group', Common::getPost('group')), $this->module->lang('th_dl_gid'));
 		$data['level'] = array(GWF_Form::INT, '0', $this->module->lang('th_dl_level'));
-		if (GWF_User::isAdminS()) {
+		
+		if (GWF_User::isAdminS())
+		{
 			$data['price'] = array(GWF_Form::FLOAT, '0.00', $this->module->lang('th_dl_price'));
 		}
 		
@@ -68,12 +50,14 @@ final class Download_Add extends GWF_Method
 		
 		$data['adult'] = array(GWF_Form::CHECKBOX, false, $this->module->lang('th_adult'));
 		
-		if (GWF_User::isLoggedIn()) {
+		if (GWF_User::isLoggedIn())
+		{
 			$data['huname'] = array(GWF_Form::CHECKBOX, false, $this->module->lang('th_huname'));
 		}
 		
 		$data['descr'] = array(GWF_Form::MESSAGE, '', $this->module->lang('th_dl_descr'));
-		if (!GWF_User::isLoggedIn() && $this->module->cfgGuestCaptcha()) {
+		if (!GWF_User::isLoggedIn() && $this->module->cfgGuestCaptcha())
+		{
 			$data['captcha'] = array(GWF_Form::CAPTCHA);
 		}
 		$data['add'] = array(GWF_Form::SUBMIT, $this->module->lang('btn_add'));
@@ -85,20 +69,11 @@ final class Download_Add extends GWF_Method
 		$form = $this->getForm();
 		if (false !== ($errors = $form->validate($this->module)))
 		{
+			$form->cleanup();
 			return $errors.$this->templateAdd();
 		}
-
-		if (false === ($file = $this->getFile()))
-		{
-			$this->uploadedFile($form);
-			$file = $form->getVar('file');
-		}
 		
-		$tempname = $file['tmp_name'];
-		if (!file_exists($tempname))
-		{
-			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__)).$this->templateAdd();
-		}
+		$file = $form->getVar('file');
 
 		$mod = $this->module->isModerated($this->module);
 		
@@ -121,82 +96,45 @@ final class Download_Add extends GWF_Method
 			'dl_filename' => $form->getVar('filename'),
 			'dl_realname' => $file['name'],
 			'dl_descr' => $form->getVar('descr'),
-			'dl_mime' => GWF_Upload::getMimeType($file['tmp_name']),
+			'dl_mime' => GWF_Upload::getMimeType($file['path']),
 			'dl_price' => sprintf('%.02f', $form->getVar('price', 0.0)),
 			'dl_options' => $options,
 			'dl_voteid' => 0,
 			'dl_purchases' => 0,
 			'dl_expire' => GWF_TimeConvert::humanToSeconds($form->getVar('expire')),
 		));
-		if (false === $dl->insert()) {
+		if (false === $dl->insert())
+		{
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__)).$this->templateAdd();
 		}
 		
+		# Move file
 		$dlid = $dl->getID();
 		$filename = 'dbimg/dl/'.$dlid;
-		
-		if (false === GWF_Upload::moveTo($file, $filename))
+		if (!GWF_Upload::moveFlowFile($file, $filename))
 		{
-			return GWF_HTML::err('ERR_WRITE_FILE', array( $filename)).$this->templateAdd();
+			$form->cleanup();
+			return GWF_HTML::err('ERR_GENERAL', array( __FILE__, __LINE__)).$this->templateAdd();
 		}
+		$form->cleanup();
 		
-		if (false === @unlink($tempname))
-		{
-			return GWF_HTML::err('ERR_WRITE_FILE', array( $tempname)).$this->templateAdd();
-		}
-		
+		# Votes
 		if (false === $dl->createVotes($this->module))
 		{
+			$form->cleanup();
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__)).$this->templateAdd();
 		}
 		
-		$this->clearFile();
-		
+		# Moderation
 		if ($mod)
 		{
 			$this->sendModMail($dl);
 			return $this->module->message('msg_uploaded_mod');
 		}
-		
-		
-		return $this->module->message('msg_uploaded');
-	}
-	
-	private function uploadedFile(GWF_Form $form)
-	{
-		if (false === ($file = $form->getVar('file'))) {
-//			echo $this->module->error('err_file');
-			return;
+		else
+		{
+			return $this->module->message('msg_uploaded');
 		}
-		$tempname = 'dbimg/dl/'.basename($file['tmp_name']);
-		if (false === ($file = GWF_Upload::moveTo($file, $tempname))) {
-			echo GWF_HTML::err('ERR_WRITE_FILE', array( $tempname));
-		}
-		GWF_Session::set(self::SESS_FILE, $file);
-	}
-	
-	private function clearFile()
-	{
-		GWF_Session::remove(self::SESS_FILE);
-	}
-	
-	private function getFile()
-	{
-		return GWF_Session::getOrDefault(self::SESS_FILE, false);
-	}
-	
-	private function onUpload()
-	{
-		$form = $this->getForm();
-		if (false === ($file = $form->getVar('file'))) {
-			return GWF_HTML::err('ERR_MISSING_UPLOAD');
-		}
-		$this->uploadedFile($form);
-	}
-	
-	private function onRemove()
-	{
-		$this->clearFile();
 	}
 	
 	##################
@@ -215,8 +153,6 @@ final class Download_Add extends GWF_Method
 	##################
 	private function sendModMail(GWF_Download $dl)
 	{
-//		$dl->setVar('', $val);
-		
 		$user = GWF_Session::getUser();
 		foreach (GWF_UserSelect::getUsers(GWF_Group::STAFF) as $staff)
 		{
@@ -260,4 +196,3 @@ final class Download_Add extends GWF_Method
 		$mail->sendToUser($staff);
 	}
 }
-?>

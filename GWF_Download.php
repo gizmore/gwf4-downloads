@@ -194,14 +194,13 @@ final class GWF_Download extends GDO implements GWF_Orderable #implements GDO_Se
 	################
 	public function hrefDownload()
 	{
-		return GWF_WEB_ROOT.'download/'.$this->getVar('dl_id').'/'.$this->urlencodeSEO('dl_filename');
+		return Common::getProtocol().'://'.GWF_DOMAIN.GWF_WEB_ROOT.'download/'.$this->getVar('dl_id').'/'.$this->urlencodeSEO('dl_filename');
 	}
 	
 	public function hrefDownloadToken($token)
 	{
-		return GWF_WEB_ROOT.'download/'.$this->getVar('dl_id').'/'.$this->urlencodeSEO('dl_filename').'/'.$token;
+		return Common::getProtocol().'://'.GWF_DOMAIN.GWF_WEB_ROOT.'download/'.$this->getVar('dl_id').'/'.$this->urlencodeSEO('dl_filename').'/'.$token;
 	}
-	
 	
 	#################
 	### GWF_Order ###

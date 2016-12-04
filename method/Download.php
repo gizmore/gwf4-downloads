@@ -1,9 +1,4 @@
 <?php
-/**
- * WyMY5sx21JH0
- * @author gizmore
- *
- */
 final class Download_Download extends GWF_Method
 {
 	public function getHTAccess()
@@ -15,29 +10,35 @@ final class Download_Download extends GWF_Method
 
 	public function execute()
 	{
-		if (false === ($dl = GWF_Download::getByID(Common::getGet('id')))) {
+		if (false === ($dl = GWF_Download::getByID(Common::getGet('id'))))
+		{
 			return $this->module->error('err_dlid');
 		}
 		
 		$user = GWF_Session::getUser();
 		
-		if (false !== ($error = $this->module->mayDownload($user, $dl))) {
+		if (false !== ($error = $this->module->mayDownload($user, $dl)))
+		{
 			return $error;
 		}
 		
-		if (false !== Common::getPost('dl_token')) {
+		if (false !== Common::getPost('dl_token'))
+		{
 			return $this->onDownloadByToken($dl, Common::getPost('token'));
 		}
 		
-		if (false !== Common::getPost('on_order_2_x')) {
+		if (false !== Common::getPost('on_order_2_x'))
+		{
 			return $this->onOrder($dl);
 		}
 		
-		if (false !== ($token = Common::getGet('token'))) {
+		if (false !== ($token = Common::getGet('token')))
+		{
 			return $this->templateOnDownload($dl, $token);
 		}
 		
-		if ($dl->isPaidContent() && !GWF_DownloadToken::checkUser($this->module, $dl, $user)) {
+		if ($dl->isPaidContent() && !GWF_DownloadToken::checkUser($this->module, $dl, $user))
+		{
 			return $this->templatePay($dl);
 		}
 		
@@ -71,7 +72,7 @@ final class Download_Download extends GWF_Method
 	
 	public function sendTheFile(GWF_Download $dl)
 	{
-		GWF3::setConfig('store_last_url', false);
+		GWF4::setConfig('store_last_url', false);
 		
 		$realpath = $dl->getCustomDownloadPath();
 		# http header
@@ -154,4 +155,3 @@ final class Download_Download extends GWF_Method
 		return $this->templateOnDownload($dl, $token);
 	}
 }
-?>
