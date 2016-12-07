@@ -27,7 +27,7 @@ final class Download_Download extends GWF_Method
 			return $this->onDownloadByToken($dl, Common::getPost('token'));
 		}
 		
-		if (false !== Common::getPost('on_order_2_x'))
+		if (isset($_POST['on_order_2']) || isset($_POST['on_order_2_x']))
 		{
 			return $this->onOrder($dl);
 		}
