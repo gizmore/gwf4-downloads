@@ -85,10 +85,24 @@ final class Download_Download extends GWF_Method
 		$size = filesize($realpath);
 		header("Content-Length: $size");
 		# Print file and die
-		echo file_get_contents($realpath);
+		$this->streamContents($realpath);
+// 		echo file_get_contents($realpath);
 		die(0);
 	}
 	
+	private function streamContents($realpath)
+	{
+		if ($fh = fopen($realpath, 'rb'))
+		{
+			while (!feof($handle))
+			{
+				echo fread($fh, 1024*1024);
+				ob_flush();
+				flush();
+			}
+			fclose($fh);
+		}
+	}
 	
 	private function templatePay(GWF_Download $dl)
 	{
