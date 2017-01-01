@@ -3,7 +3,7 @@ final class Download_Add extends GWF_Method
 {
 	public function execute()
 	{
-		if (false === $this->module->mayUpload(GWF_Session::getUser()))
+		if (!$this->module->mayUpload(GWF_Session::getUser()))
 		{
 			return GWF_HTML::err('ERR_NO_PERMISSION');
 		}
@@ -34,7 +34,7 @@ final class Download_Add extends GWF_Method
 		$data = array();
 		
 		$data['filename'] = array(GWF_Form::STRING, '', $this->module->lang('th_dl_filename'));
-		$data['file'] = array(GWF_Form::FILE, '', $this->module->lang('th_file'));
+		$data['file'] = array(GWF_Form::FILE, '', $this->module->lang('th_file'), '', $this->module->fileUploadParams());
 
 		$data['group'] = array(GWF_Form::SELECT, GWF_GroupSelect::single('group', Common::getPost('group')), $this->module->lang('th_dl_gid'));
 		$data['level'] = array(GWF_Form::INT, '0', $this->module->lang('th_dl_level'));
@@ -69,7 +69,6 @@ final class Download_Add extends GWF_Method
 		$form = $this->getForm();
 		if (false !== ($errors = $form->validate($this->module)))
 		{
-			$form->cleanup();
 			return $errors.$this->templateAdd();
 		}
 		
@@ -96,7 +95,7 @@ final class Download_Add extends GWF_Method
 			'dl_filename' => $form->getVar('filename'),
 			'dl_realname' => $file['name'],
 			'dl_descr' => $form->getVar('descr'),
-			'dl_mime' => GWF_Upload::getMimeType($file['path']),
+			'dl_mime' => $file['mime'],
 			'dl_price' => sprintf('%.02f', $form->getVar('price', 0.0)),
 			'dl_options' => $options,
 			'dl_voteid' => 0,
@@ -111,17 +110,16 @@ final class Download_Add extends GWF_Method
 		# Move file
 		$dlid = $dl->getID();
 		$filename = 'dbimg/dl/'.$dlid;
-		if (!GWF_Upload::moveFlowFile($file, $filename))
+		if (!@copy($file['path'], $filename))
 		{
-			$form->cleanup();
 			return GWF_HTML::err('ERR_GENERAL', array( __FILE__, __LINE__)).$this->templateAdd();
 		}
+		
 		$form->cleanup();
 		
 		# Votes
 		if (false === $dl->createVotes($this->module))
 		{
-			$form->cleanup();
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__)).$this->templateAdd();
 		}
 		
@@ -140,7 +138,7 @@ final class Download_Add extends GWF_Method
 	##################
 	### Validators ###
 	##################
-	public function validate_file(Module_Download $m, $arg) { return false; }
+	public function validate_file(Module_Download $m, $arg) { return count($arg) === 1 ? false : $m->lang('err_one_file'); }
 	public function validate_price(Module_Download $m, $arg) { return GWF_Validator::validateDecimal($m, 'price', $arg, 0.00, 10000.00, '0.00'); }
 	public function validate_filename(Module_Download $m, $arg) { return GWF_Validator::validateFilename($m, 'filename', $arg, true); }
 	public function validate_group(Module_Download $m, $arg) { return GWF_Validator::validateGroupID($m, 'group', $arg, true, true); }

@@ -1,25 +1,32 @@
 <?php
 final class Download_Edit extends GWF_Method
 {
-	public function isLoginRequired() { return true; }
-	
 	public function execute()
 	{
-		if (false === ($dl = GWF_Download::getByID(Common::getGet('id')))) {
+		if (false === ($dl = GWF_Download::getByID(Common::getGet('id'))))
+		{
 			return $this->module->error('err_dlid');
 		}
 		
-		if (!$dl->mayEdit(GWF_Session::getUser())) {
+		if (!$dl->mayEdit(GWF_Session::getUser()))
+		{
 			return GWF_HTML::err('ERR_NO_PERMISSION');
 		}
 		
-		if (false !== (Common::getPost('edit'))) {
+		$this->getFormReup($dl)->onFlowUpload();
+		
+		if (isset($_POST['edit']))
+		{
 			return $this->onEdit($dl);
 		}
-		if (false !== (Common::getPost('delete'))) {
+		
+		if (isset($_POST['delete']))
+		{
 			return $this->onDelete($dl);
 		}
-		if (false !== (Common::getPost('reup'))) {
+		
+		if (isset($_POST['reup']))
+		{
 			return $this->onReup($dl);
 		}
 		
@@ -47,7 +54,7 @@ final class Download_Edit extends GWF_Method
 	private function getFormReup(GWF_Download $dl)
 	{
 		$data = array();
-		$data['file'] = array(GWF_Form::FILE, '', $this->module->lang('th_file'));
+		$data['file'] = array(GWF_Form::FILE, '', $this->module->lang('th_file'), '', $this->module->fileUploadParams());
 		$data['reup'] = array(GWF_Form::SUBMIT, $this->module->lang('btn_upload'));
 		return new GWF_Form($this, $data);
 	}
@@ -87,17 +94,20 @@ final class Download_Edit extends GWF_Method
 	public function validate_level(Module_Download $m, $arg) { return GWF_Validator::validateInt($m, 'level', $arg, 0, 3999999999, '0'); }
 	public function validate_descr(Module_Download $m, $arg) { return GWF_Validator::validateString($m, 'descr', $arg, 0, $m->cfgMaxDescrLen(), false); }
 	public function validate_expire(Module_Download $m, $arg) { return GWF_Time::isValidDuration($arg, 0, GWF_Time::ONE_YEAR*10) ? false : $m->lang('err_dl_expire'); }
-	public function validate_file(Module_Download $m, $arg) { return false; }
+	public function validate_file(Module_Download $m, $arg) { return count($arg) === 1 ? false : $m->lang('err_one_file'); }
 	
 	private function onEdit(GWF_Download $dl)
 	{
 		$form = $this->getForm($dl);
-		if (false !== ($err = $form->validate($this->module))) {
+		if (false !== ($err = $form->validate($this->module)))
+		{
 			return $err.$this->templateEdit($dl);
 		}
 
-		if (GWF_User::isAdminS()) {
-			if (false === $dl->saveVar('dl_price', $form->getVar('price'))) {
+		if (GWF_User::isAdminS())
+		{
+			if (false === $dl->saveVar('dl_price', $form->getVar('price')))
+			{
 				return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__)).$this->templateEdit($dl);
 			}
 		}
@@ -126,11 +136,13 @@ final class Download_Edit extends GWF_Method
 
 	private function onDelete(GWF_Download $dl)
 	{
-		if (false === $dl->getVotes()->onDelete()) {
+		if (false === $dl->getVotes()->onDelete())
+		{
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__));
 		}
 
-		if (false === $dl->delete()) {
+		if (false === $dl->delete())
+		{
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__));
 		}
 		
@@ -140,7 +152,8 @@ final class Download_Edit extends GWF_Method
 	private function onReup(GWF_Download $dl)
 	{
 		$form = $this->getFormReup($dl);
-		if (false !== ($err = $form->validate($this->module))) {
+		if (false !== ($err = $form->validate($this->module)))
+		{
 			return $err.$this->templateEdit($dl);
 		}
 		
@@ -155,15 +168,19 @@ final class Download_Edit extends GWF_Method
 		}
 		
 		$tempname = 'dbimg/dl/'.$dl->getVar('dl_id');
-		if (false === ($file = GWF_Upload::moveTo($file, $tempname))) {
+		if (!@copy($file['path'], $tempname))
+		{
 			return GWF_HTML::err('ERR_WRITE_FILE', array( $tempname)).$this->templateEdit($dl);
 		}
 		
-		if (false === $dl->saveVars(array(
+		$form->cleanup();
+		
+		if (!$dl->saveVars(array(
 			'dl_uid' => GWF_Session::getUserID(),
-			'dl_mime' => GWF_Upload::getMimeType($file['tmp_name']),
+			'dl_mime' => $file['mime'],
 			'dl_date' => GWF_Time::getDate(GWF_Date::LEN_SECOND),
-		))) {
+		)))
+		{
 			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__));
 		}
 		
@@ -171,4 +188,3 @@ final class Download_Edit extends GWF_Method
 	}
 	
 }
-?>

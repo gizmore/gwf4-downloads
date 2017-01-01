@@ -18,6 +18,8 @@ final class GWF_DownloadInstall
 				'dl_moderators' => array('moderator', 'text', 0, 63),
 				'dl_moderated' => array(true, 'bool'),
 				'dl_min_level' => array('0', 'int', 0, 1000000),
+				'dl_max_size' => array(128*1024*1024, 'int', '1024', '1000000000'),
+				'dl_file_types' => array('', 'text', '0', '1024'),
 			)).
 			self::dropVotes($module, $dropTable).
 			self::installDlDirs($module, $dropTable);

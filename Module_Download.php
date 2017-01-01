@@ -52,6 +52,9 @@ final class Module_Download extends GWF_Module
 	public function cfgModerated() { return $this->getModuleVarBool('dl_moderated', '1'); }
 	public function cfgModerators() { return $this->getModuleVar('dl_moderators', 'moderator'); }
 	public function cfgMinLevel() { return (int)$this->getModuleVarInt('dl_min_level', 0); }
+	public function cfgMaxFileSize() { return $this->getModuleVarInt('dl_max_size', 128*1024*1024); }
+	public function cfgFileTypes() { return GWF_Array::explodeCSV($this->getModuleVar('dl_file_types', '')); }
+	public function fileUploadParams() { return array('maxSize' => $this->cfgMaxFileSize(), 'mimeTypes' => $this->cfgFileTypes()); }
 	
 	public function saveModuleVar($key, $value)
 	{
