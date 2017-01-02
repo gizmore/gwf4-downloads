@@ -50,14 +50,16 @@ final class Download_Download extends GWF_Method
 		# submit this file pls
 		$path = $dl->getDownloadPath();
 		
-		if (!is_file($path)||!is_readable($path)) {
-			return GWF_HTML::err('ERR_FILE_NOT_FOUND', array( $path));
+		if (!GWF_File::is_file($path))
+		{
+			return GWF_HTML::err('ERR_FILE_NOT_FOUND', array($path));
 		}
 		
 		$user = GWF_User::getStaticOrGuest();
 		if ($dl->isPaidContent())
 		{
-			if ( (false === GWF_DownloadToken::checkUser($this->module, $dl, $user)) && (false === GWF_DownloadToken::checkToken($this->module, $dl, $user, $token)) ) {
+			if ( (false === GWF_DownloadToken::checkUser($this->module, $dl, $user)) && (false === GWF_DownloadToken::checkToken($this->module, $dl, $user, $token)) )
+			{
 				return GWF_HTML::err('ERR_NO_PERMISSION');
 			}
 		}
@@ -73,7 +75,6 @@ final class Download_Download extends GWF_Method
 	public function sendTheFile(GWF_Download $dl)
 	{
 		GWF4::setConfig('store_last_url', false);
-		
 		$realpath = $dl->getCustomDownloadPath();
 		# http header
 		$mime = $dl->getVar('dl_mime'); # currently i am looking for pecl filetype?
@@ -85,39 +86,19 @@ final class Download_Download extends GWF_Method
 		$size = filesize($realpath);
 		header("Content-Length: $size");
 		# Print file and die
-		$this->streamContents($realpath);
-// 		echo file_get_contents($realpath);
+		GWF_Upload::stream($realpath);
 		die(0);
-	}
-	
-	private function streamContents($realpath)
-	{
-		if ($fh = fopen($realpath, 'rb'))
-		{
-			while (!feof($handle))
-			{
-				echo fread($fh, 1024*1024);
-				ob_flush();
-				flush();
-			}
-			fclose($fh);
-		}
 	}
 	
 	private function templatePay(GWF_Download $dl)
 	{
-		if (false === ($mod_pay = GWF_Module::getModule('Payment'))) {
-			return GWF_HTML::err('ERR_MODULE_MISSING', array( 'Payment'));
-		}
-		
+		$mod_pay = $this->module->payment();
 		$user = GWF_User::getStaticOrGuest();
 		$form = $this->getTokenForm($dl);
-		
 		$tVars = array(
 			'form' => $form->templateX($this->module->lang('ft_token')),
 			'order' => Module_Payment::displayOrderS($this->module, $dl, $user),
 		);
-		
 		return $this->module->templatePHP('paid_content.php', $tVars);
 	}
 	
@@ -134,7 +115,8 @@ final class Download_Download extends GWF_Method
 	private function onOrder(GWF_Download $dl)
 	{
 		// Check for Payment, as it`s not a required dependency.
-		if (false === ($mod_pay = GWF_Module::getModule('Payment'))) {
+		if (false === ($mod_pay = GWF_Module::getModule('Payment')))
+		{
 			return GWF_HTML::err('ERR_MODULE_MISSING', array( 'Payment'));
 		}
 		

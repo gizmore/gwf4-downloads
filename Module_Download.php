@@ -58,12 +58,14 @@ final class Module_Download extends GWF_Module
 	
 	public function saveModuleVar($key, $value)
 	{
-		if (false === parent::saveModuleVar($key, $value)) {
+		if (false === parent::saveModuleVar($key, $value))
+		{
 			return false;
 		}
 		if ($key === 'dl_gvotes')
 		{
-			if (false === ($mod_vote = GWF_Module::getModule('Votes'))) {
+			if (false === ($mod_vote = GWF_Module::getModule('Votes')))
+			{
 				return true;
 			}
 			$mod_vote->onInclude();
@@ -71,12 +73,14 @@ final class Module_Download extends GWF_Module
 			switch ($value)
 			{
 				case 'YES':
-					if (false === (GDO::table('GWF_VoteScore')->update("vs_options=vs_options|$guest_votes", "vs_name LIKE 'dl_%' "))) {
+					if (false === (GDO::table('GWF_VoteScore')->update("vs_options=vs_options|$guest_votes", "vs_name LIKE 'dl_%' ")))
+					{
 						return false;
 					}
 					break;
 				case 'NO':
-					if (false === (GDO::table('GWF_VoteScore')->update("vs_options=vs_options-$guest_votes", "vs_options&$guest_votes AND vs_name LIKE 'dl_%' "))) {
+					if (false === (GDO::table('GWF_VoteScore')->update("vs_options=vs_options-$guest_votes", "vs_options&$guest_votes AND vs_name LIKE 'dl_%' ")))
+					{
 						return false;
 					}
 					break;
@@ -205,7 +209,8 @@ final class Module_Download extends GWF_Module
 	
 	public function sidebarContent($bar)
 	{
-		if ($bar === 'right') {
+		if ($bar === 'right')
+		{
 			return $this->downloadLink();
 		}
 	}
@@ -214,6 +219,5 @@ final class Module_Download extends GWF_Module
 	{
 		return '<div>'.GWF_Button::generic('Download', GWF_WEB_ROOT.'downloads').'</div>'.PHP_EOL;
 	}
-	
 	
 }
