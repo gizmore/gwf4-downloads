@@ -50,7 +50,7 @@ final class Download_Download extends GWF_Method
 		# submit this file pls
 		$path = $dl->getDownloadPath();
 		
-		if (!GWF_File::is_file($path))
+		if (!GWF_File::isFile($path))
 		{
 			return GWF_HTML::err('ERR_FILE_NOT_FOUND', array($path));
 		}
@@ -92,7 +92,11 @@ final class Download_Download extends GWF_Method
 	
 	private function templatePay(GWF_Download $dl)
 	{
-		$mod_pay = $this->module->payment();
+		// Check for Payment, as it`s not a required dependency.
+		if (false === ($mod_pay = GWF_Module::getModule('Payment')))
+		{
+			return GWF_HTML::err('ERR_MODULE_MISSING', array( 'Payment'));
+		}
 		$user = GWF_User::getStaticOrGuest();
 		$form = $this->getTokenForm($dl);
 		$tVars = array(

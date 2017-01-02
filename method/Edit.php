@@ -136,9 +136,12 @@ final class Download_Edit extends GWF_Method
 
 	private function onDelete(GWF_Download $dl)
 	{
-		if (false === $dl->getVotes()->onDelete())
+		if ($dl->getVar('vs_id') > 0)
 		{
-			return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__));
+			if (false === $dl->getVotes()->onDelete())
+			{
+				return GWF_HTML::err('ERR_DATABASE', array( __FILE__, __LINE__));
+			}
 		}
 
 		if (false === $dl->delete())

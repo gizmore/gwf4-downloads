@@ -239,11 +239,12 @@ final class GWF_Download extends GDO implements GWF_Orderable #implements GDO_Se
 		return $module->templatePHP('order.php', $tVars);
 	}
 	
-	public function executeOrder(GWF_Module $module, GWF_User $user)
+	public function executeOrder(GWF_Module $module, GWF_User $user, &$message)
 	{
 		$token = $this->getVar('your_token');
 		
 		if (false === (GWF_DownloadToken::insertToken($module, $this, $user, $token))) {
+			$message = GWF_HTML::err('ERR_DATABASE', array(__FILE__, __LINE__));
 			return false;
 		}
 		
@@ -252,14 +253,12 @@ final class GWF_Download extends GDO implements GWF_Orderable #implements GDO_Se
 		}
 		
 		if ($this->expires()) {
-			$module->message('msg_purchased', array($token, GWF_Time::humanDuration($this->getVar('dl_expire')), $this->hrefDownload()), true, true);
+			$message = $module->message('msg_purchased', array($token, GWF_Time::humanDuration($this->getVar('dl_expire')), $this->hrefDownload()));
 		} else {
-			$module->message('msg_purchased2', array($token, $this->hrefDownload()), true, true);
+			$message = $module->message('msg_purchased2', array($token, $this->hrefDownload()));
 		}
 		
 		return true;
 	}
 	
 }
-
-?>
