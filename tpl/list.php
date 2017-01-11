@@ -26,10 +26,10 @@ foreach ($tVars['downloads'] as $dl)
 	$href = $dl->hrefDownload();
 	$u = $dl->getUser();
 	$v = $dl->getVotes();
-	$editbtn = $dl->mayEdit($user) ? GWF_Button::edit($dl->hrefEdit(), $lang->lang('btn_edit')) : '';
+	$editbtn = $dl->mayEdit($user) ? GWF_Button::edit($dl->hrefEdit()) : false;
 	$onclick = sprintf("return confirm('%s')", $lang->lang('prompt_download'));
 	echo GWF_Table::rowStart();
-	echo sprintf('<td>%s%s</td>', $editbtn, $dl->getVar('dl_id'));
+	echo sprintf('<td>%s</td>', $editbtn ? $editbtn : $dl->getVar('dl_id'));
 	echo sprintf('<td class="gwf_date">%s</td>', GWF_Time::displayDate($dl->getVar('dl_date')));
 	echo sprintf('<td><a href="%s" onclick="%s">%s</a></td>', $href, $onclick, $dl->display('dl_filename'));
 	echo sprintf('<td class="gwf_num">%s</td>', $dl->displayPrice());
@@ -48,7 +48,5 @@ foreach ($tVars['downloads'] as $dl)
 echo GWF_Table::end();
 
 if ($tVars['may_upload']) {
-	echo GWF_Button::add($lang->lang('btn_add'), $tVars['href_add']);
+	echo GWF_Button::add($tVars['href_add'], $lang->lang('btn_add'));
 }
-
-?>
