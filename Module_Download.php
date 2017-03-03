@@ -211,13 +211,17 @@ final class Module_Download extends GWF_Module
 	{
 		if ($bar === 'right')
 		{
-			return $this->downloadLink();
+			return $this->templateSidebar();
 		}
 	}
 	
-	private function downloadLink()
+	private function templateSidebar()
 	{
-		return '<div>'.GWF_Button::generic('Download', GWF_WEB_ROOT.'downloads').'</div>'.PHP_EOL;
+		$this->onLoadLanguage();
+		$tVars = array(
+			'hrefDownload' => GWF_WEB_ROOT.'downloads',
+		);
+		return $this->template('sidebar.php', $tVars);
 	}
 	
 }
